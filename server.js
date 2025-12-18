@@ -31,6 +31,10 @@ const upload = multer({ storage });
 
 // ================= ROUTES =================
 
+//service routes
+const serviceRoutes = require("./routes/serviceRoutes");
+app.use("/api/services", serviceRoutes);
+
 // Therapy routes
 const therapyRoutes = require("./routes/therapyRoutes");
 app.use("/api/therapies", therapyRoutes);
