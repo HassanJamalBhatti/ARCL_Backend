@@ -55,6 +55,18 @@ app.use("/api/certifications", certificationRoutes);
 const financialRoutes = require("./routes/financialRoutes");
 app.use("/api/financial", financialRoutes);
 
+// Newsletter routes
+const newsletterRoutes = require("./routes/newsletterRoutes");
+app.use("/api/newsletters", newsletterRoutes);
+
+// User routes
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/users", userRoutes);
+
+// Auth routes
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
+
 // ================= EXAMPLE UPLOAD ENDPOINT =================
 app.post("/upload-image", upload.single("image"), (req, res) => {
   if (!req.file) {
