@@ -79,6 +79,10 @@ app.use("/api/news", newsRoutes);
 const newsupdateRoutes = require("./routes/newsupdateRoutes");
 app.use("/api/newsupdate", newsupdateRoutes);
 
+// Contact Routes
+const contactRoutes = require('./routes/contactRoutes');
+app.use('/api/contact', contactRoutes);
+
 
 // ================= EXAMPLE UPLOAD ENDPOINT =================
 app.post("/upload-image", upload.single("image"), (req, res) => {
