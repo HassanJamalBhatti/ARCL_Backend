@@ -71,6 +71,15 @@ app.use("/api/users", userRoutes);
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
+// News/Events routes
+const newsRoutes = require("./routes/newsRoutes");
+app.use("/api/news", newsRoutes);
+
+// Add this at the top with your other requires
+const newsupdateRoutes = require("./routes/newsupdateRoutes");
+app.use("/api/newsupdate", newsupdateRoutes);
+
+
 // ================= EXAMPLE UPLOAD ENDPOINT =================
 app.post("/upload-image", upload.single("image"), (req, res) => {
   if (!req.file) {
