@@ -75,10 +75,16 @@ app.use("/api/auth", authRoutes);
 const newsupdateRoutes = require("./routes/newsupdateRoutes");
 app.use("/api/newsupdate", newsupdateRoutes);
 
+<<<<<<< HEAD
 // Donation routes
 const donationRoutes = require("./routes/donationRoutes");
 app.use("/api/donations", donationRoutes);
 
+=======
+// Contact Routes
+const contactRoutes = require('./routes/contactRoutes');
+app.use('/api/contact', contactRoutes);
+>>>>>>> 1f487b3f71475de244244891704061ffd5fae3de
 
 
 // ================= EXAMPLE UPLOAD ENDPOINT =================
