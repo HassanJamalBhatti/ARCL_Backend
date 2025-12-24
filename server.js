@@ -9,7 +9,17 @@ const app = express();
 connectDB();
 
 // ================= MIDDLEWARES =================
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://arcl-frontend.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // ================= STATIC FILES =================
