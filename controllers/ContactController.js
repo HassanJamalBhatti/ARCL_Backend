@@ -8,12 +8,21 @@ exports.submitContactForm = async (req, res) => {
   try {
     const { name, email, phone = "Not Provided", subject = "", message } = req.body;
 
-    // 1. Save to MongoDB
-    const newContact = new Contact({ name, email, phone, subject, message });
+    // 1️⃣ Save to MongoDB
+    const newContact = new Contact({
+      name,
+      email,
+      phone,
+      subject,
+      message,
+    });
     await newContact.save();
 
-    // 2. Read HTML template file
-    const templatePath = path.join(__dirname, '../templates/contact-notification.html');
+    // 2️⃣ Read HTML email template
+    const templatePath = path.join(
+      __dirname,
+      '../templates/contact-notification.html'
+    );
     let htmlContent = await fs.readFile(templatePath, 'utf8');
 
     const now = new Date();
@@ -25,35 +34,52 @@ exports.submitContactForm = async (req, res) => {
       .replace(/{{date}}/g, now.toLocaleDateString())
       .replace(/{{time}}/g, now.toLocaleTimeString());
 
-    // 4. Send email with HTML template
+    // 3️⃣ SMTP Transporter - Try 465 SSL first, fallback to 587 TLS
+    const smtpPort = Number(process.env.SMTP_PORT) || 465;
+    const secure = smtpPort === 465; // SSL if port 465, TLS otherwise
+
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST,
+      port: 587,
+      secure: false, // TLS
       auth: {
-        user: process.env.ADMIN_EMAIL,
-        pass: process.env.ADMIN_EMAIL_PASSWORD
-      }
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeout: 15000, // 15s
     });
 
+
+    // 🔍 4️⃣ Verify SMTP connection
+    await transporter.verify();
+    console.log("✅ SMTP connection verified");
+
+    // 5️⃣ Mail options
     const mailOptions = {
-      from: `"Website Contact Form" <${process.env.ADMIN_EMAIL}>`,
-      to: process.env.ADMIN_EMAIL,
+      from: `"Website Contact Form" <${process.env.SMTP_USER}>`,
+      to: process.env.SMTP_USER,
+      replyTo: email,
       subject: `New Message from ${name}`,
-      html: htmlContent  // Use the HTML template content
+      html: htmlContent,
     };
 
+    // 6️⃣ Send email
     await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully");
 
-    // 5. Success response
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: 'Message sent successfully! We will contact you soon.'
+      message: 'Message sent successfully! We will contact you soon.',
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
-    res.status(500).json({
+    console.error("❌ EMAIL ERROR FULL:", error);
+    return res.status(500).json({
       success: false,
-      message: 'Server error. Please try again later.'
+      message: error.message || 'Email sending failed',
     });
   }
 };
