@@ -6,80 +6,59 @@ const path = require('path');
 
 exports.submitContactForm = async (req, res) => {
   try {
-    const { name, email, phone = "Not Provided", subject = "", message } = req.body;
+    let { name, email, phone = "Not Provided", subject, message } = req.body;
+
+    if (!subject || subject.trim() === "") {
+      subject = "Website Contact Form";
+    }
 
     // 1️⃣ Save to MongoDB
-    const newContact = new Contact({
-      name,
-      email,
-      phone,
-      subject,
-      message,
-    });
-    await newContact.save();
+    await Contact.create({ name, email, phone, subject, message });
 
-    // 2️⃣ Read HTML email template
-    const templatePath = path.join(
-      __dirname,
-      '../templates/contact-notification.html'
-    );
+    // 2️⃣ Load Email Template
+    const templatePath = path.join(__dirname, '../templates/contact-notification.html');
     let htmlContent = await fs.readFile(templatePath, 'utf8');
 
     const now = new Date();
     htmlContent = htmlContent
-      .replace(/{{name}}/g, name || '')
-      .replace(/{{email}}/g, email || '')
-      .replace(/{{phone}}/g, phone || '')
-      .replace(/{{message}}/g, (message || '').replace(/\n/g, '<br>'))
+      .replace(/{{name}}/g, name)
+      .replace(/{{email}}/g, email)
+      .replace(/{{phone}}/g, phone)
+      .replace(/{{subject}}/g, subject)
+      .replace(/{{message}}/g, message.replace(/\n/g, '<br>'))
       .replace(/{{date}}/g, now.toLocaleDateString())
       .replace(/{{time}}/g, now.toLocaleTimeString());
 
-    // 3️⃣ SMTP Transporter - Try 465 SSL first, fallback to 587 TLS
-    const smtpPort = Number(process.env.SMTP_PORT) || 465;
-    const secure = smtpPort === 465; // SSL if port 465, TLS otherwise
-
+    // 3️⃣ SMTP Transporter (IMAGE ACCORDING)
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: 587,
-      secure: false, // TLS
+      host: process.env.SMTP_HOST, // box2135.bluehost.com
+      port: process.env.SMTP_PORT, // 465
+      secure: true,
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        pass: process.env.SMTP_APP_PASSWORD,
       },
-      tls: {
-        rejectUnauthorized: false,
-      },
-      connectionTimeout: 15000, // 15s
     });
 
-
-    // 🔍 4️⃣ Verify SMTP connection
-    await transporter.verify();
-    console.log("✅ SMTP connection verified");
-
-    // 5️⃣ Mail options
-    const mailOptions = {
+    // 4️⃣ Send Email
+    await transporter.sendMail({
       from: `"Website Contact Form" <${process.env.SMTP_USER}>`,
       to: process.env.SMTP_USER,
       replyTo: email,
-      subject: `New Message from ${name}`,
+      subject: `New Message: ${subject}`,
       html: htmlContent,
-    };
-
-    // 6️⃣ Send email
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent successfully");
+    });
 
     return res.status(201).json({
       success: true,
-      message: 'Message sent successfully! We will contact you soon.',
+      message: "Message sent successfully",
     });
 
   } catch (error) {
-    console.error("❌ EMAIL ERROR FULL:", error);
+    console.error("EMAIL ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Email sending failed',
+      message: "Email sending failed",
     });
   }
 };
