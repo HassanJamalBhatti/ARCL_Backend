@@ -29,14 +29,17 @@ exports.submitContactForm = async (req, res) => {
       .replace(/{{date}}/g, now.toLocaleDateString())
       .replace(/{{time}}/g, now.toLocaleTimeString());
 
-    // 3️⃣ SMTP Transporter (IMAGE ACCORDING)
+    // 3️⃣ SMTP Transporter (TLS for cloud)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST, // box2135.bluehost.com
-      port: process.env.SMTP_PORT, // 465
-      secure: true,
+      port: 587,                   // Changed from 465 to 587
+      secure: false,               // false for TLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_APP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false, // allow self-signed certs
       },
     });
 
@@ -59,6 +62,7 @@ exports.submitContactForm = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Email sending failed",
+      error: error.message, 
     });
   }
 };

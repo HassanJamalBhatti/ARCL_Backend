@@ -1,9 +1,14 @@
 const NewsUpdate = require("../models/NewsUpdate"); 
 
-/* CREATE */
+/* ================= CREATE ================= */
 exports.createNewsUpdate = async (req, res) => {
   try {
     const { title, description, type, date } = req.body;
+
+    // Validate type
+    if (!["Event", "Workshop", "Internship"].includes(type)) {
+      return res.status(400).json({ success: false, message: "Invalid type" });
+    }
 
     const newsupdate = await NewsUpdate.create({
       title,
@@ -19,7 +24,7 @@ exports.createNewsUpdate = async (req, res) => {
   }
 };
 
-/* READ ALL */
+/* ================= READ ALL ================= */
 exports.getAllNewsUpdates = async (req, res) => {
   try {
     const newsupdates = await NewsUpdate.find().sort({ createdAt: -1 });
@@ -29,7 +34,7 @@ exports.getAllNewsUpdates = async (req, res) => {
   }
 };
 
-/* READ ONE */
+/* ================= READ ONE ================= */
 exports.getNewsUpdateById = async (req, res) => {
   try {
     const newsupdate = await NewsUpdate.findById(req.params.id);
@@ -42,10 +47,15 @@ exports.getNewsUpdateById = async (req, res) => {
   }
 };
 
-/* UPDATE */
+/* ================= UPDATE ================= */
 exports.updateNewsUpdate = async (req, res) => {
   try {
     const updateData = { ...req.body };
+
+    // Validate type
+    if (updateData.type && !["Event", "Workshop", "Internship"].includes(updateData.type)) {
+      return res.status(400).json({ success: false, message: "Invalid type" });
+    }
 
     if (req.file) {
       updateData.image = `/uploads/${req.file.filename}`;
@@ -66,7 +76,7 @@ exports.updateNewsUpdate = async (req, res) => {
   }
 };
 
-/* DELETE */
+/* ================= DELETE ================= */
 exports.deleteNewsUpdate = async (req, res) => {
   try {
     const newsupdate = await NewsUpdate.findByIdAndDelete(req.params.id);
